@@ -17,7 +17,8 @@ app.add_middleware(
 
 HF_API_TOKEN = os.getenv("HF_API_TOKEN")
 HF_MODEL = "facebook/blenderbot-400M-distill"
-HF_API_URL = f"https://api-inference.huggingface.co/models/{HF_MODEL}"
+HF_API_URL = f"https://router.huggingface.co/models/{HF_MODEL}"
+
 
 headers = {
     "Authorization": f"Bearer {HF_API_TOKEN}"
