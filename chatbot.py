@@ -31,16 +31,9 @@ async def chat(request: ChatRequest):
     if not request.message.strip():
         raise HTTPException(status_code=400, detail="Message cannot be empty.")
 
-    payload = {
-        "inputs": request.message
-    }
+    payload = {"inputs": request.message}
 
-    response = requests.post(
-        HF_API_URL,
-        headers=headers,
-        json=payload,
-        timeout=30
-    )
+    response = requests.post(HF_API_URL, headers=headers, json=payload, timeout=30)
 
     if response.status_code != 200:
         raise HTTPException(
@@ -50,13 +43,16 @@ async def chat(request: ChatRequest):
 
     data = response.json()
 
-    # HF returns a list for text-generation style models
-    try:
+    # Robustly extract generated text
+    if isinstance(data, list) and "generated_text" in data[0]:
         bot_reply = data[0]["generated_text"]
-    except Exception:
-        raise HTTPException(status_code=500, detail="Unexpected API response format")
+    elif isinstance(data, dict) and "generated_text" in data:
+        bot_reply = data["generated_text"]
+    else:
+        raise HTTPException(status_code=500, detail=f"Unexpected API response format: {data}")
 
     return {"response": bot_reply}
+
 
 @app.get("/", include_in_schema=False)
 @app.head("/")
