@@ -56,6 +56,7 @@ async def chat(request: ChatRequest):
     return {"response": bot_reply}
 
 @app.get("/", include_in_schema=False)
-@app.head("/"):
+@app.head("/")
 def root():
     return {"message": "Welcome to the Chatbot API!"}
+
