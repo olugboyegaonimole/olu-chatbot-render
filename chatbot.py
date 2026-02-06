@@ -6,7 +6,7 @@ import requests
 
 app = FastAPI()
 
-# Enable CORS
+# Enable CORS so your frontend can call the API
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,10 +15,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Minimal change: use a working Hugging Face model
 HF_API_TOKEN = os.getenv("HF_API_TOKEN")
-HF_MODEL = "facebook/blenderbot-400M-distill"
+HF_MODEL = "facebook/blenderbot-3B"  # <-- updated to a currently supported model
 HF_API_URL = f"https://api-inference.huggingface.co/models/{HF_MODEL}"
-
 
 headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
 
@@ -40,16 +40,14 @@ async def chat(request: ChatRequest):
 
     data = response.json()
 
-    # Minimal robust extraction
+    # Minimal robust extraction of response
     bot_reply = None
     if isinstance(data, list) and "generated_text" in data[0]:
         bot_reply = data[0]["generated_text"]
     elif isinstance(data, dict):
-        # Try conversational key
         try:
             bot_reply = data["conversation"]["generated_responses"][0]
         except (KeyError, IndexError, TypeError):
-            # fallback
             bot_reply = str(data)
 
     if not bot_reply:
@@ -58,6 +56,6 @@ async def chat(request: ChatRequest):
     return {"response": bot_reply}
 
 @app.get("/", include_in_schema=False)
-@app.head("/")
+@app.head("/"):
 def root():
     return {"message": "Welcome to the Chatbot API!"}
